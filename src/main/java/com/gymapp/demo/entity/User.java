@@ -2,13 +2,14 @@ package com.gymapp.demo.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 
 @Entity
 @Table(name = "users")
@@ -29,9 +30,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;  // Ensure you store a hashed password
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
-    private Date createdAt = new Date();  // Auto-generate created_at field
+    private LocalDateTime createdAt;  // FIXED: Use LocalDateTime for better support
 
     public User() {}
 
@@ -39,13 +40,12 @@ public class User implements UserDetails {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.createdAt = new Date();
     }
 
-    // ✅ Spring Security methods (No roles implemented yet)
+    // ✅ Spring Security methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        return Collections.emptyList(); // FIXED: No roles implemented yet
     }
 
     @Override
@@ -54,8 +54,8 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getUsername() {  // Spring Security requires this method
-        return email;  // Use email instead of username
+    public String getUsername() {
+        return email;  // FIXED: Using email as username
     }
 
     @Override

@@ -18,27 +18,18 @@ public class Workout {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "client_id", nullable = false)  // Matches SQL schema
-    private User client;  // Changed from 'user' to 'client' for clarity
+    @JoinColumn(name = "user_id", nullable = false)  // FIXED: Changed to match SQL schema
+    private User user;  // FIXED: Renamed from 'client' to 'user'
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
-    private Date createdAt = new Date();
-
-    @Temporal(TemporalType.DATE)
-    @Column(name = "date", nullable = false)
-    private Date date;
-
-    @Column(columnDefinition = "TEXT")
-    private String notes;
+    private Date createdAt;
 
     public Workout() {}
 
-    public Workout(User client, Date date, String notes) {
-        this.client = client;
-        this.date = date;
-        this.notes = notes;
+    public Workout(User user) {
+        this.user = user;
         this.createdAt = new Date();
     }
 }

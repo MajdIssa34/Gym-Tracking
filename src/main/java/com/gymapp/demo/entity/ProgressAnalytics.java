@@ -3,8 +3,10 @@ package com.gymapp.demo.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -17,15 +19,14 @@ public class ProgressAnalytics {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false) // Matches SQL schema
-    private User client;
+    @JoinColumn(name = "user_id", nullable = false) // FIXED: Matches SQL schema
+    private User user;  // Renamed from 'client' to 'user'
 
     @Column(name = "exercise_name", nullable = false)
     private String exerciseName;
 
-    @Temporal(TemporalType.DATE)
     @Column(name = "date", nullable = false)
-    private Date date;
+    private LocalDate date; // FIXED: Use LocalDate instead of java.util.Date
 
     @Column(name = "weight", nullable = false)
     private float weight;
@@ -36,19 +37,18 @@ public class ProgressAnalytics {
     @Column(name = "reps", nullable = false)
     private int reps;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
-    private Date createdAt = new Date();
+    private LocalDateTime createdAt; // FIXED: Use LocalDateTime with @CreationTimestamp
 
     public ProgressAnalytics() {}
 
-    public ProgressAnalytics(User client, String exerciseName, Date date, float weight, int sets, int reps) {
-        this.client = client;
+    public ProgressAnalytics(User user, String exerciseName, LocalDate date, float weight, int sets, int reps) {
+        this.user = user;
         this.exerciseName = exerciseName;
         this.date = date;
         this.weight = weight;
         this.sets = sets;
         this.reps = reps;
-        this.createdAt = new Date();
     }
 }

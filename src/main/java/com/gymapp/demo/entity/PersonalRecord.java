@@ -3,8 +3,9 @@ package com.gymapp.demo.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -17,8 +18,8 @@ public class PersonalRecord {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false) // Matches SQL schema
-    private User client;
+    @JoinColumn(name = "user_id", nullable = false) // FIXED: Matches SQL schema
+    private User user;  // Renamed from 'client' to 'user'
 
     @Column(name = "exercise_name", nullable = false)
     private String exerciseName;
@@ -29,17 +30,16 @@ public class PersonalRecord {
     @Column(name = "best_reps", nullable = false)
     private int bestReps;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
-    private Date createdAt = new Date();
+    private LocalDateTime createdAt; // FIXED: Use LocalDateTime with @CreationTimestamp
 
     public PersonalRecord() {}
 
-    public PersonalRecord(User client, String exerciseName, float bestWeight, int bestReps) {
-        this.client = client;
+    public PersonalRecord(User user, String exerciseName, float bestWeight, int bestReps) {
+        this.user = user;
         this.exerciseName = exerciseName;
         this.bestWeight = bestWeight;
         this.bestReps = bestReps;
-        this.createdAt = new Date();
     }
 }

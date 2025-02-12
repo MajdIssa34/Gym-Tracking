@@ -26,14 +26,14 @@ public class WorkoutController {
 
     @PostMapping
     public ResponseEntity<?> createWorkout(@RequestBody Workout workout) {
-        if (workout.getClient() == null || workout.getClient().getId() == null) {
+        if (workout.getUser() == null || workout.getUser().getId() == null) {
             return ResponseEntity.badRequest().body("User ID is required.");
         }
 
-        User user = userRepository.findById(workout.getClient().getId())
+        User user = userRepository.findById(workout.getUser().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        workout.setClient(user); // 👈 Set the fetched User object before saving
+        workout.setUser(user); // 👈 Set the fetched User object before saving
         Workout savedWorkout = workoutService.saveWorkout(workout);
 
         return ResponseEntity.ok(savedWorkout);
