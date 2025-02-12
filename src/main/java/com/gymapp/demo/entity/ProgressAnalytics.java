@@ -25,9 +25,6 @@ public class ProgressAnalytics {
     @Column(name = "exercise_name", nullable = false)
     private String exerciseName;
 
-    @Column(name = "date", nullable = false)
-    private LocalDate date; // FIXED: Use LocalDate instead of java.util.Date
-
     @Column(name = "weight", nullable = false)
     private float weight;
 
@@ -43,10 +40,9 @@ public class ProgressAnalytics {
 
     public ProgressAnalytics() {}
 
-    public ProgressAnalytics(User user, String exerciseName, LocalDate date, float weight, int sets, int reps) {
+    public ProgressAnalytics(User user, String exerciseName, float weight, int sets, int reps) {
         this.user = user;
         this.exerciseName = exerciseName;
-        this.date = date;
         this.weight = weight;
         this.sets = sets;
         this.reps = reps;

@@ -13,8 +13,9 @@ public class PersonalRecordController {
     @Autowired
     private PersonalRecordService personalRecordService;
 
+    // ✅ Get only the best personal records per exercise
     @GetMapping("/user/{userId}")
-    public List<PersonalRecord> getPersonalRecordsByUserId(@PathVariable Long userId) {
+    public List<PersonalRecord> getBestPersonalRecordsByUserId(@PathVariable Long userId) {
         return personalRecordService.getPersonalRecordsByUserId(userId);
     }
 

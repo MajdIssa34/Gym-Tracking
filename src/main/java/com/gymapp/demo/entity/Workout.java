@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -18,18 +20,21 @@ public class Workout {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)  // FIXED: Changed to match SQL schema
-    private User user;  // FIXED: Renamed from 'client' to 'user'
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
-    private Date createdAt;
+    private LocalDate createdAt;
+
+    @Column(name = "notes", columnDefinition = "TEXT")  // ✅ Added notes field
+    private String notes;
 
     public Workout() {}
 
-    public Workout(User user) {
+    public Workout(User user, String notes) {
         this.user = user;
-        this.createdAt = new Date();
+        this.notes = notes;
+        this.createdAt = LocalDate.now();
     }
 }

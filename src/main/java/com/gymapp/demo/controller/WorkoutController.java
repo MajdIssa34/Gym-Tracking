@@ -1,5 +1,6 @@
 package com.gymapp.demo.controller;
 
+import com.gymapp.demo.dto.WorkoutDTO;
 import com.gymapp.demo.entity.User;
 import com.gymapp.demo.entity.Workout;
 import com.gymapp.demo.repositories.UserRepository;
@@ -20,7 +21,7 @@ public class WorkoutController {
     private UserRepository userRepository;
 
     @GetMapping("/user/{userId}")
-    public List<Workout> getWorkoutsByUserId(@PathVariable Long userId) {
+    public List<WorkoutDTO> getWorkoutsByUserId(@PathVariable Long userId) {
         return workoutService.getWorkoutsByUserId(userId);
     }
 

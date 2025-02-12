@@ -14,7 +14,7 @@ public class PersonalRecordService {
     private PersonalRecordRepository personalRecordRepository;
 
     public List<PersonalRecord> getPersonalRecordsByUserId(Long userId) {
-        return personalRecordRepository.findByUserId(userId);
+        return personalRecordRepository.findTopRecordsByUserId(userId);
     }
 
     public List<PersonalRecord> getPersonalRecordsByExerciseName(String exerciseName) {
