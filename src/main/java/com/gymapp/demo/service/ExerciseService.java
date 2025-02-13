@@ -17,6 +17,11 @@ public class ExerciseService {
         return exerciseRepository.findByWorkoutId(workoutId);
     }
 
+    public List<Exercise> getRecentExercises(Long userId) {
+        return exerciseRepository.findTop10ByWorkout_User_IdOrderByCreatedAtDesc(userId);
+    }
+
+
     public Exercise saveExercise(Exercise exercise) {
         return exerciseRepository.save(exercise);
     }

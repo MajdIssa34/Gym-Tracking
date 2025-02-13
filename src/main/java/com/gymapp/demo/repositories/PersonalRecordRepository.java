@@ -12,12 +12,15 @@ import java.util.Optional;
 
 @Repository
 public interface PersonalRecordRepository extends JpaRepository<PersonalRecord, Long> {
-    List<PersonalRecord> findByUserId(Long userId);
+    @Query("SELECT pr FROM PersonalRecord pr WHERE pr.user.id = :userId " +
+            "AND pr.bestWeight = (SELECT MAX(pr2.bestWeight) FROM PersonalRecord pr2 WHERE pr2.user.id = :userId AND pr2.exerciseName = pr.exerciseName)")
+    List<PersonalRecord> findBestRecordsByUserId(Long userId);
     List<PersonalRecord> findByExerciseName(String exerciseName);
     Optional<PersonalRecord> findTopByUserAndExerciseNameOrderByBestWeightDesc(User user, String exerciseName);
     @Query("SELECT pr FROM PersonalRecord pr " +
             "WHERE pr.user.id = :userId " +
             "AND pr.bestWeight = (SELECT MAX(p.bestWeight) FROM PersonalRecord p WHERE p.user.id = :userId AND p.exerciseName = pr.exerciseName)")
     List<PersonalRecord> findTopRecordsByUserId(@Param("userId") Long userId);
+    void deleteByExerciseNameAndUserId(String exerciseName, Long userId);
 
 }

@@ -26,17 +26,26 @@ public class WorkoutController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createWorkout(@RequestBody Workout workout) {
+    public ResponseEntity<WorkoutDTO> createWorkout(@RequestBody Workout workout) {
         if (workout.getUser() == null || workout.getUser().getId() == null) {
-            return ResponseEntity.badRequest().body("User ID is required.");
+            return ResponseEntity.badRequest().build();
         }
 
         User user = userRepository.findById(workout.getUser().getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        workout.setUser(user); // 👈 Set the fetched User object before saving
+        workout.setUser(user); // Set user before saving
+
         Workout savedWorkout = workoutService.saveWorkout(workout);
 
-        return ResponseEntity.ok(savedWorkout);
+        // ✅ Return only essential fields via WorkoutDTO
+        WorkoutDTO responseDTO = new WorkoutDTO(
+                savedWorkout.getId(),
+                savedWorkout.getNotes(),
+                savedWorkout.getCreatedAt()
+        );
+
+        return ResponseEntity.ok(responseDTO);
     }
+
 }

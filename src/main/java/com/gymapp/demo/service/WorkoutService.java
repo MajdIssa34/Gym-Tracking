@@ -18,13 +18,8 @@ public class WorkoutService {
 
     public List<WorkoutDTO> getWorkoutsByUserId(Long userId) {
         List<Workout> workouts = workoutRepository.findByUserId(userId);
-
         return workouts.stream()
-                .map(workout -> new WorkoutDTO(
-                        workout.getId(),
-                        workout.getNotes(),
-                        workout.getCreatedAt()
-                ))
+                .map(workout -> new WorkoutDTO(workout.getId(), workout.getNotes(), workout.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 

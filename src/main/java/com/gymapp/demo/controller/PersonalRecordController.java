@@ -1,5 +1,6 @@
 package com.gymapp.demo.controller;
 
+import com.gymapp.demo.dto.PRDTO;
 import com.gymapp.demo.entity.PersonalRecord;
 import com.gymapp.demo.service.PersonalRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,7 @@ public class PersonalRecordController {
 
     // ✅ Get only the best personal records per exercise
     @GetMapping("/user/{userId}")
-    public List<PersonalRecord> getBestPersonalRecordsByUserId(@PathVariable Long userId) {
+    public List<PRDTO> getBestPersonalRecordsByUserId(@PathVariable Long userId) {
         return personalRecordService.getPersonalRecordsByUserId(userId);
-    }
-
-    @PostMapping
-    public PersonalRecord createPersonalRecord(@RequestBody PersonalRecord personalRecord) {
-        return personalRecordService.savePersonalRecord(personalRecord);
     }
 }
