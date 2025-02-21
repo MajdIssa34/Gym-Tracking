@@ -26,8 +26,8 @@ public class AuthController {
     private final UserRepository userRepository;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil,
-                          UserDetailsService userDetailsService, PasswordEncoder passwordEncoder,
-                          UserRepository userRepository) {
+            UserDetailsService userDetailsService, PasswordEncoder passwordEncoder,
+            UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
@@ -51,8 +51,7 @@ public class AuthController {
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             String token = jwtUtil.generateToken(user.getEmail()); // ✅ Using `user.getEmail()` directly
 
             return ResponseEntity.ok(Map.of(
@@ -60,9 +59,7 @@ public class AuthController {
                     "user", Map.of(
                             "id", user.getId(),
                             "name", user.getName(),
-                            "email", user.getEmail()
-                    )
-            ));
+                            "email", user.getEmail())));
 
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
@@ -76,7 +73,8 @@ public class AuthController {
         }
 
         if (registerRequest.getPassword().length() < 6) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Password must be at least 6 characters long"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Password must be at least 6 characters long"));
         }
 
         User newUser = new User();
@@ -94,10 +92,14 @@ public class AuthController {
                 "user", Map.of(
                         "id", newUser.getId(),
                         "name", newUser.getName(),
-                        "email", newUser.getEmail()
-                )
-        ));
+                        "email", newUser.getEmail())));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
 }
 
 // ✅ DTOs for request bodies
@@ -105,11 +107,21 @@ class LoginRequest {
     private String email;
     private String password;
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
 
 class RegisterRequest {
@@ -117,12 +129,27 @@ class RegisterRequest {
     private String email;
     private String password;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

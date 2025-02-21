@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Gym App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: _isAuthenticated ? ProfileScreen() : LoginScreen(),
+      home: _isAuthenticated ? HomeScreen() : LoginScreen(),
     );
   }
 }

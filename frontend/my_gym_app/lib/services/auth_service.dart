@@ -31,9 +31,13 @@ class AuthService {
   // 🔹 Register Function
   Future<Map<String, dynamic>?> register(String name, String email, String password) async {
     try {
-      final response = await _dio.post('/register', data: {'name': name, 'email': email, 'password': password});
+      final response = await _dio.post('/register', data: {
+        'name': name,
+        'email': email,
+        'password': password,
+      });
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         final token = response.data['token'];
         final user = response.data['user'];
 
