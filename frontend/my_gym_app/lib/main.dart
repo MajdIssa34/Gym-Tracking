@@ -63,11 +63,6 @@ class _MyAppState extends State<MyApp> {
       );
     }
 
-    print("DEBUG: Available Routes:");
-    print("/login => ${LoginScreen()}");
-    print("/register => ${RegisterScreen()}");
-    print("/home => ${HomeScreen()}");
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Gym App',
