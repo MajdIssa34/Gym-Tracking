@@ -7,6 +7,9 @@ import com.gymapp.demo.repositories.UserRepository;
 import com.gymapp.demo.repositories.WorkoutRepository;
 import com.gymapp.demo.repositories.ExerciseRepository;
 import com.gymapp.demo.service.WorkoutService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,24 +54,24 @@ public class WorkoutController {
         WorkoutDTO responseDTO = new WorkoutDTO(
                 savedWorkout.getId(),
                 savedWorkout.getNotes(),
-                savedWorkout.getCreatedAt()
-        );
+                savedWorkout.getCreatedAt());
 
         return ResponseEntity.ok(responseDTO);
     }
 
-    // ✅ DELETE Workout Endpoint
+    @Transactional
     @DeleteMapping("/{workoutId}")
     public ResponseEntity<?> deleteWorkout(@PathVariable Long workoutId) {
         Workout workout = workoutRepository.findById(workoutId)
                 .orElseThrow(() -> new RuntimeException("Workout not found"));
 
-        // ✅ Delete all exercises linked to the workout
+        // ✅ Ensure all related exercises are deleted
         exerciseRepository.deleteByWorkoutId(workoutId);
 
-        // ✅ Delete workout
+        // ✅ Delete the workout within a transaction
         workoutRepository.delete(workout);
 
         return ResponseEntity.ok("Workout deleted successfully.");
     }
+
 }

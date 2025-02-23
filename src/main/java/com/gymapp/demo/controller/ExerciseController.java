@@ -12,6 +12,9 @@ import com.gymapp.demo.repositories.PersonalRecordRepository;
 import com.gymapp.demo.repositories.ProgressAnalyticsRepository;
 import com.gymapp.demo.repositories.WorkoutRepository;
 import com.gymapp.demo.service.ExerciseService;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -148,6 +151,7 @@ public class ExerciseController {
                 return ResponseEntity.status(HttpStatus.CREATED).body(savedExercise);
         }
 
+        @Transactional
         @DeleteMapping("/{exerciseId}")
         public ResponseEntity<?> deleteExercise(@PathVariable Long exerciseId) {
                 Exercise exercise = exerciseRepository.findById(exerciseId)

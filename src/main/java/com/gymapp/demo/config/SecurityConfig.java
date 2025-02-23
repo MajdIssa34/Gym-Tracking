@@ -35,13 +35,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Allow CORS
                 .csrf(csrf -> csrf.disable()) // ✅ Disable CSRF for API calls
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // ✅ Allow login/register without authentication
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ Allow preflight CORS requests
-                        .anyRequest().authenticated() // ✅ All other requests require authentication
+                        .requestMatchers("/api/auth/**").permitAll() // ✅ Allow login/register
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ CORS Preflight
+                        .requestMatchers(HttpMethod.DELETE, "/api/workouts/**", "/api/exercises/**").authenticated() // ✅
+                                                                                                                     // Allow
+                                                                                                                     // DELETE
+                        .anyRequest().authenticated() // ✅ Everything else requires authentication
                 )
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // ✅ Ensure JWT
+                                                                                                       // filter runs
+                                                                                                       // first
 
         return http.build();
     }
@@ -76,7 +82,8 @@ public class SecurityConfig {
     public CorsConfiguration corsConfiguration() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:63332/")); // Allow Flutter frontend
+        config.setAllowedOrigins(List.of("http://localhost:51907/")); // ✅ Allow all origins for testing (change in
+                                                                      // production)
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setExposedHeaders(List.of("Authorization"));
