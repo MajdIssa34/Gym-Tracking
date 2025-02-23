@@ -4,8 +4,11 @@ import com.gymapp.demo.dto.WorkoutDTO;
 import com.gymapp.demo.entity.User;
 import com.gymapp.demo.entity.Workout;
 import com.gymapp.demo.repositories.UserRepository;
+import com.gymapp.demo.repositories.WorkoutRepository;
+import com.gymapp.demo.repositories.ExerciseRepository;
 import com.gymapp.demo.service.WorkoutService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,12 @@ public class WorkoutController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WorkoutRepository workoutRepository;
+
+    @Autowired
+    private ExerciseRepository exerciseRepository;
 
     @GetMapping("/user/{userId}")
     public List<WorkoutDTO> getWorkoutsByUserId(@PathVariable Long userId) {
@@ -48,4 +57,18 @@ public class WorkoutController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    // ✅ DELETE Workout Endpoint
+    @DeleteMapping("/{workoutId}")
+    public ResponseEntity<?> deleteWorkout(@PathVariable Long workoutId) {
+        Workout workout = workoutRepository.findById(workoutId)
+                .orElseThrow(() -> new RuntimeException("Workout not found"));
+
+        // ✅ Delete all exercises linked to the workout
+        exerciseRepository.deleteByWorkoutId(workoutId);
+
+        // ✅ Delete workout
+        workoutRepository.delete(workout);
+
+        return ResponseEntity.ok("Workout deleted successfully.");
+    }
 }

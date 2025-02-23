@@ -3,13 +3,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WorkoutService {
-  final String baseUrl =
-      "http://localhost:9090/api"; // ✅ Update this to your real API URL
+  final String baseUrl = "http://localhost:9090/api"; // ✅ Your API URL
 
   // 🔹 Fetch Token from SharedPreferences
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("token"); // ✅ Fixed from "auth_token"
+    return prefs.getString("token");
   }
 
   // 🔹 Fetch User ID
@@ -46,10 +45,7 @@ class WorkoutService {
       );
 
       if (response.statusCode == 200) {
-        final List<Map<String, dynamic>> jsonResponse =
-            List<Map<String, dynamic>>.from(jsonDecode(response.body));
-        print("✅ Workouts Fetched: $jsonResponse");
-        return jsonResponse;
+        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
       } else {
         print("❌ Failed to fetch workouts. Status: ${response.statusCode}");
         return [];
@@ -63,10 +59,7 @@ class WorkoutService {
   // 🔹 Fetch Exercises for a Workout
   Future<List<Map<String, dynamic>>> fetchExercises(int workoutId) async {
     final token = await _getToken();
-    if (token == null) {
-      print("❌ No token found!");
-      return [];
-    }
+    if (token == null) return [];
 
     try {
       final response = await http.get(
@@ -75,10 +68,7 @@ class WorkoutService {
       );
 
       if (response.statusCode == 200) {
-        final List<Map<String, dynamic>> jsonResponse =
-            List<Map<String, dynamic>>.from(jsonDecode(response.body));
-        print("✅ Fetched Exercises for Workout $workoutId: $jsonResponse");
-        return jsonResponse;
+        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
       } else {
         print("❌ Failed to fetch exercises. Status: ${response.statusCode}");
         return [];
@@ -89,67 +79,33 @@ class WorkoutService {
     }
   }
 
-  // 🔹 Fetch Personal Records
-  Future<List<Map<String, dynamic>>> fetchPersonalRecords() async {
+  // 🔹 Fetch Workout Summary
+  Future<Map<String, dynamic>?> fetchWorkoutSummary(int workoutId) async {
     final token = await _getToken();
-    final userId = await _getUserId();
-    if (token == null || userId == null) return [];
+    if (token == null) return null;
 
     try {
       final response = await http.get(
-        Uri.parse("$baseUrl/personal-records/user/$userId"),
+        Uri.parse("$baseUrl/exercises/workout/$workoutId/summary"),
         headers: {"Authorization": "Bearer $token"},
       );
 
       if (response.statusCode == 200) {
-        final List<Map<String, dynamic>> jsonResponse =
-            List<Map<String, dynamic>>.from(jsonDecode(response.body));
-        print("✅ Fetched Personal Records: $jsonResponse");
-        return jsonResponse;
+        return jsonDecode(response.body);
       } else {
-        print(
-            "❌ Failed to fetch personal records. Status: ${response.statusCode}");
-        return [];
+        print("❌ Failed to fetch workout summary. Status: ${response.statusCode}");
+        return null;
       }
     } catch (e) {
-      print("❌ Personal Records Fetch Error: $e");
-      return [];
+      print("❌ Workout Summary Fetch Error: $e");
+      return null;
     }
   }
 
-  // 🔹 Fetch Progress Analytics
-  Future<List<Map<String, dynamic>>> fetchProgressAnalytics() async {
+  // 🔹 Create a new workout
+  Future<int?> createWorkout(Map<String, dynamic> workout) async {
     final token = await _getToken();
-    final userId = await _getUserId();
-    if (token == null || userId == null) return [];
-
-    try {
-      final response = await http.get(
-        Uri.parse("$baseUrl/progress-analytics/user/$userId"),
-        headers: {"Authorization": "Bearer $token"},
-      );
-
-      if (response.statusCode == 200) {
-        final List<Map<String, dynamic>> jsonResponse =
-            List<Map<String, dynamic>>.from(jsonDecode(response.body));
-        print("✅ Fetched Progress Analytics: $jsonResponse");
-        return jsonResponse;
-      } else {
-        print(
-            "❌ Failed to fetch progress analytics. Status: ${response.statusCode}");
-        return [];
-      }
-    } catch (e) {
-      print("❌ Progress Analytics Fetch Error: $e");
-      return [];
-    }
-  }
-
-  // 🔹 Start a New Workout
-  Future<bool> startNewWorkout() async {
-    final token = await _getToken();
-    final userId = await _getUserId();
-    if (token == null || userId == null) return false;
+    if (token == null) return null;
 
     try {
       final response = await http.post(
@@ -158,19 +114,111 @@ class WorkoutService {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
-        body: jsonEncode({"user_id": userId}),
+        body: jsonEncode(workout),
       );
 
-      if (response.statusCode == 201) {
-        print("✅ New Workout Created Successfully!");
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse['id']; // Return workout ID
+      } else {
+        print("❌ Failed to create workout. Status: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("❌ Create Workout Error: $e");
+      return null;
+    }
+  }
+
+  // 🔹 Add Exercise to a Workout
+  Future<bool> addExercise(Map<String, dynamic> exercise) async {
+    final token = await _getToken();
+    if (token == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse("$baseUrl/exercises"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(exercise),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Exercise Added: ${response.body}");
         return true;
       } else {
-        print("❌ Failed to start workout. Status: ${response.statusCode}");
+        print("❌ Failed to add exercise. Status: ${response.statusCode}");
         return false;
       }
     } catch (e) {
-      print("❌ Start Workout Error: $e");
+      print("❌ Error Adding Exercise: $e");
       return false;
     }
+  }
+
+  // 🔹 Delete Workout
+  Future<bool> deleteWorkout(int workoutId) async {
+    final token = await _getToken();
+    if (token == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse("$baseUrl/workouts/$workoutId"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      if (response.statusCode == 200) {
+        print("✅ Workout Deleted: $workoutId");
+        return true;
+      } else {
+        print("❌ Failed to delete workout. Status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error Deleting Workout: $e");
+      return false;
+    }
+  }
+
+  // 🔹 Delete Exercise
+  Future<bool> deleteExercise(int exerciseId) async {
+    final token = await _getToken();
+    if (token == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse("$baseUrl/exercises/$exerciseId"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      if (response.statusCode == 200) {
+        print("✅ Exercise Deleted: $exerciseId");
+        return true;
+      } else {
+        print("❌ Failed to delete exercise. Status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error Deleting Exercise: $e");
+      return false;
+    }
+  }
+
+  // 🔹 Start a New Workout
+  Future<int?> startNewWorkout(String notes) async {
+    final userId = await _getUserId();
+    final userInfo = {
+      "id": userId,
+      "name": "Majd Issa",
+      "email": "majd@gmail.com"
+    };
+
+    if (userId == null) return null;
+
+    final workoutData = {"user": userInfo, "notes": notes};
+
+    return await createWorkout(workoutData);
   }
 }

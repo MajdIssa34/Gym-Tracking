@@ -1,6 +1,7 @@
 package com.gymapp.demo.service;
 
 import com.gymapp.demo.dto.WorkoutDTO;
+import com.gymapp.demo.entity.User;
 import com.gymapp.demo.entity.Workout;
 import com.gymapp.demo.repositories.WorkoutRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,5 +34,10 @@ public class WorkoutService {
 
     public void deleteWorkout(Long id) {
         workoutRepository.deleteById(id);
+    }
+
+    public Optional<User> findById(Long workoutId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findById'");
     }
 }
