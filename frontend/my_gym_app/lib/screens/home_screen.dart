@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_gym_app/screens/wokrout_screen.dart';
+import 'package:my_gym_app/services/progress_analytics_service.dart';
 import '../services/workout_service.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,33 +18,34 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final WorkoutService _workoutService = WorkoutService();
   final AuthService _authService = AuthService();
+  final ProgressAnalyticsService _progressService = ProgressAnalyticsService();
 
   List<Map<String, dynamic>> workouts = [];
-  Map<int, List<Map<String, dynamic>>> workoutExercises = {};
-  bool _loading = true;
   String userName = "User"; // Placeholder
   double totalWeightLifted = 0.0;
+  String bestLift = "N/A"; // Holds best lift details
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchWorkouts();
+    _fetchData();
   }
 
-  void _fetchWorkouts() async {
+  void _fetchData() async {
     final fetchedWorkouts = await _workoutService.fetchWorkouts();
     final userInfo = await _authService.getUserInfo();
 
     if (fetchedWorkouts.isNotEmpty) {
-      // Get the last workout's ID
       int lastWorkoutId = fetchedWorkouts.first['id'];
       _fetchWorkoutSummary(lastWorkoutId);
     }
 
+    _fetchBestLift(); // Fetch best lift
+
     setState(() {
-      workouts = fetchedWorkouts.take(3).toList(); // Show last 3 workouts
+      workouts = fetchedWorkouts.reversed.take(3).toList();
       userName = userInfo['name'] ?? "User";
-      _loading = false;
     });
   }
 
@@ -58,6 +62,189 @@ class _HomeScreenState extends State<HomeScreen> {
         totalWeightLifted = summary['totalWeightLifted'];
       });
     }
+  }
+
+  void _fetchWorkouts() async {
+    print("🔵 Fetching workouts...");
+    final fetchedWorkouts = await _workoutService.fetchWorkouts();
+    print("✅ Workouts received: $fetchedWorkouts");
+
+    setState(() {
+      workouts =
+          fetchedWorkouts.reversed.take(3).toList(); // ✅ Limit to 3 most recent
+      _loading = false;
+    });
+  }
+
+  void _fetchBestLift() async {
+    final userInfo = await _authService.getUserInfo();
+    if (userInfo['id'] == null) return;
+    print(userInfo['id']);
+    final bestLiftData =
+        await _progressService.fetchBestLift(userInfo['id'] ?? "");
+    print(bestLiftData);
+    if (bestLiftData != null) {
+      setState(() {
+        bestLift =
+            "${bestLiftData['exerciseName']} ${bestLiftData['bestWeight']}kg";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+
+      // 🔹 App Bar
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        title: Text(
+          "🏋️ My Gym",
+          style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: _logout,
+            tooltip: "Logout",
+          ),
+        ],
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // **🏋️ Welcome Header**
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Welcome Back, $userName!",
+                      style: GoogleFonts.poppins(
+                          fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "📅 ${DateTime.now().toLocal().toString().split(' ')[0]}",
+                      style: GoogleFonts.poppins(
+                          fontSize: 16, color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.blueAccent,
+                  child:
+                      const Icon(Icons.person, size: 35, color: Colors.white),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // **📊 Quick Stats**
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+              ),
+              child: Column(
+                children: [
+                  Text("📊 Quick Stats",
+                      style: GoogleFonts.poppins(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _statBox("🏆 Best Lift", bestLift),
+                      _statBox("📆 Workouts", workouts.length.toString()),
+                      _statBox("💪 Last Workout",
+                          "${totalWeightLifted.toStringAsFixed(1)} kg"), // Placeholder
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // **📜 Recent Workouts & Add Button**
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "📜 Recent Workouts",
+                  style: GoogleFonts.poppins(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                ElevatedButton(
+                  onPressed:
+                      _startNewWorkout, // Implement _startNewWorkout function
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: Text("Start New Workout",
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.white)),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            workouts.isNotEmpty
+                ? Column(
+                    children: workouts.take(3).map((workout) {
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 3,
+                        child: ListTile(
+                          title: Text(
+                            "${workout['notes'] ?? 'Workout'} - ${workout['createdAt'] ?? 'Unknown Date'}",
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold),
+                          ),
+                          leading: const Icon(Icons.fitness_center,
+                              color: Colors.blueAccent),
+                        ),
+                      );
+                    }).toList(),
+                  )
+                : Text("No recent workouts.",
+                    style: GoogleFonts.poppins(fontSize: 16)),
+
+            const SizedBox(height: 20),
+
+            // 🔹 See All Workouts Button
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const WorkoutsScreen()));
+                },
+                child: Text(
+                  "See All Workouts →",
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // 🔹 Start New Workout Flow
@@ -138,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (workoutId != null) {
       _showSnackBar("Workout Created! 🏋️", Colors.green);
-      _fetchWorkouts();
+      _fetchWorkouts(); // ✅ Ensure only 3 are shown
 
       // ✅ Prompt user to add exercises
       _showAddExerciseModal(workoutId);
@@ -266,25 +453,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _addExerciseToWorkout(int workoutId, String exerciseName, int sets, int reps, double weight) async {
-  final exercise = {
-    "workoutId": workoutId, // Correct format
-    "exerciseName": exerciseName,
-    "sets": sets,
-    "reps": reps,
-    "weight": weight
-  };
+  Future<void> _addExerciseToWorkout(int workoutId, String exerciseName,
+      int sets, int reps, double weight) async {
+    final exercise = {
+      "workoutId": workoutId, // Correct format
+      "exerciseName": exerciseName,
+      "sets": sets,
+      "reps": reps,
+      "weight": weight
+    };
 
-  bool success = await _workoutService.addExercise(exercise);
+    bool success = await _workoutService.addExercise(exercise);
 
-  if (success) {
-    _showSnackBar("Exercise Added! 💪", Colors.green);
-    _fetchWorkouts(); // Refresh workouts list
-  } else {
-    _showSnackBar("Failed to add exercise", Colors.red);
+    if (success) {
+      _showSnackBar("Exercise Added! 💪", Colors.green);
+      _fetchWorkouts(); // ✅ Ensure only 3 are shown
+    } else {
+      _showSnackBar("Failed to add exercise", Colors.red);
+    }
   }
-}
-
 
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -292,163 +479,6 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Text(message, style: GoogleFonts.poppins(color: Colors.white)),
         backgroundColor: color,
         duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-
-      // 🔹 App Bar
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        title: Text(
-          "🏋️ My Gym",
-          style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: _logout,
-            tooltip: "Logout",
-          ),
-        ],
-      ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // **🏋️ Welcome Header**
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Welcome Back, $userName!",
-                      style: GoogleFonts.poppins(
-                          fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      "📅 ${DateTime.now().toLocal().toString().split(' ')[0]}",
-                      style: GoogleFonts.poppins(
-                          fontSize: 16, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.blueAccent,
-                  child:
-                      const Icon(Icons.person, size: 35, color: Colors.white),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // **📊 Quick Stats**
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-              ),
-              child: Column(
-                children: [
-                  Text("📊 Quick Stats",
-                      style: GoogleFonts.poppins(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _statBox("🏆 Best Lift", "Squat 140kg"),
-                      _statBox("📆 Workouts", workouts.length.toString()),
-                      _statBox("💪 Last Workout",
-                          "${totalWeightLifted.toStringAsFixed(1)} kg"), // Placeholder
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // **📜 Recent Workouts & Add Button**
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "📜 Recent Workouts",
-                  style: GoogleFonts.poppins(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                ElevatedButton(
-                  onPressed: _startNewWorkout,
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: Text("Start New Workout",
-                      style: GoogleFonts.poppins(
-                          fontSize: 14, color: Colors.white)),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            _loading
-                ? const Center(child: CircularProgressIndicator())
-                : workouts.isNotEmpty
-                    ? Column(
-                        children: workouts.map((workout) {
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            elevation: 3,
-                            child: ListTile(
-                              title: Text(
-                                "${workout['notes'] ?? 'Workout'} - ${workout['createdAt'] ?? 'Unknown Date'}",
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              leading: const Icon(Icons.fitness_center,
-                                  color: Colors.blueAccent),
-                            ),
-                          );
-                        }).toList(),
-                      )
-                    : Text("No recent workouts.",
-                        style: GoogleFonts.poppins(fontSize: 16)),
-
-            const SizedBox(height: 20),
-
-            // 🔹 See All Workouts Button
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const WorkoutsScreen()));
-                },
-                child: Text(
-                  "See All Workouts →",
-                  style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
