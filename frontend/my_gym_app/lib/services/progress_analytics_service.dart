@@ -8,22 +8,63 @@ class ProgressAnalyticsService {
   // 🔹 Fetch Token from SharedPreferences
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString("token");
+    return prefs.getString("token"); // Retrieves the stored JWT token
   }
 
-  // 🔹 Fetch exercise progress history for a user
-  Future<List<Map<String, dynamic>>?> fetchExerciseProgress(
-      String userId, String exerciseName) async {
-    final response =
-        await http.get(Uri.parse("$baseUrl/$userId/$exerciseName"));
+  Future<List<String>?> fetchUserExercises(String userId) async {
+    final token = await _getToken();
+    if (token == null) return null;
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/progress-analytics/user/$userId"),
+      headers: {"Authorization": "Bearer $token"},
+    );
 
     if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      List<dynamic> exercises = jsonDecode(response.body);
+
+      // 🔹 Extract unique exercise names using a Set
+      Set<String> uniqueExercises = exercises
+          .map((exercise) => exercise['exerciseName'].toString())
+          .toSet();
+
+      return uniqueExercises.toList();
     }
     return null;
   }
 
-  // 🔹 Fetch Best Lift
+  // 🔹 Fetch exercise progress history for a user (WITH BEARER TOKEN)
+  Future<List<Map<String, dynamic>>?> fetchExerciseProgress(
+      String userId, String exerciseName) async {
+    final token = await _getToken();
+    if (token == null) {
+      print("❌ No token found.");
+      return null;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUrl/exercises/progress/$userId/$exerciseName"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      } else {
+        print(
+            "❌ Failed to fetch exercise progress. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("❌ Error fetching exercise progress: $e");
+    }
+
+    return null;
+  }
+
+  // 🔹 Fetch Best Lift (WITH BEARER TOKEN)
   Future<Map<String, dynamic>?> fetchBestLift(String userId) async {
     final token = await _getToken();
     if (token == null) {

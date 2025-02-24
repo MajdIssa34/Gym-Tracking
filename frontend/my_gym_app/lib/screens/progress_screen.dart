@@ -17,22 +17,46 @@ class _ProgressScreenState extends State<ProgressScreen> {
   final AuthService _authService = AuthService();
 
   List<Map<String, dynamic>> progressData = [];
+  List<String> userExercises = []; // 🔹 Store unique exercises
   String bestLift = "N/A";
   bool _loading = true;
-  String selectedExercise = "Squat"; // Default exercise
+  String? selectedExercise; // 🔹 Default to null, selected dynamically
 
   @override
   void initState() {
     super.initState();
-    _fetchExerciseProgress();
+    _fetchUserExercises();
   }
 
+  // 🔹 Fetch all unique exercises the user has performed
+  void _fetchUserExercises() async {
+    final userInfo = await _authService.getUserInfo();
+    if (userInfo['id'] == null) return;
+
+    final exercises = await _progressService.fetchUserExercises(userInfo['id']!);
+    
+    if (exercises != null && exercises.isNotEmpty) {
+      setState(() {
+        userExercises = exercises;
+        selectedExercise = userExercises.first; // ✅ Default to first exercise
+      });
+      _fetchExerciseProgress(); // Fetch progress for the first exercise
+    } else {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  // 🔹 Fetch Progress Data for selected exercise
   void _fetchExerciseProgress() async {
+    if (selectedExercise == null) return;
+
     final userInfo = await _authService.getUserInfo();
     if (userInfo['id'] == null) return;
 
     final progress =
-        await _progressService.fetchExerciseProgress(userInfo['id']!, selectedExercise);
+        await _progressService.fetchExerciseProgress(userInfo['id']!, selectedExercise!);
 
     if (progress != null && progress.isNotEmpty) {
       progress.sort((a, b) =>
@@ -72,6 +96,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 🔹 Exercise Selection Dropdown
+                  Text(
+                    "📌 Select an Exercise",
+                    style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButton<String>(
+                    value: selectedExercise,
+                    items: userExercises.map((exercise) {
+                      return DropdownMenuItem<String>(
+                        value: exercise,
+                        child: Text(exercise, style: GoogleFonts.poppins(fontSize: 16)),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedExercise = value;
+                        _loading = true; // Show loading indicator while fetching
+                      });
+                      _fetchExerciseProgress(); // Fetch new exercise data
+                    },
+                  ),
+                  const SizedBox(height: 10),
+
                   Text(
                     "🏆 Best Lift: $bestLift",
                     style: GoogleFonts.poppins(
@@ -149,8 +197,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         );
                       }
                       return const SizedBox.shrink();
-                    })),
-          ),
+                    }))),
           borderData: FlBorderData(show: true),
           lineBarsData: [
             LineChartBarData(
