@@ -38,6 +38,7 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
     for (var workout in fetchedWorkouts) {
       int workoutId = workout['id'];
       _fetchExercises(workoutId); // Fetch exercises after updating state
+      _fetchWorkoutSummary(workoutId); // Fetch summary after updating state
     }
   }
 
@@ -156,6 +157,13 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: _startNewWorkout,
+            tooltip: "Start New Workout",
+          ),
+        ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _workoutService.fetchWorkouts(), // Fetch workouts dynamically
@@ -282,6 +290,63 @@ class _WorkoutsScreenState extends State<WorkoutsScreen> {
           );
         },
       ),
+    );
+  }
+
+  // ✅ Start New Workout
+  void _startNewWorkout() async {
+    TextEditingController _notesController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "New Workout",
+                style: GoogleFonts.poppins(
+                    fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _notesController,
+                decoration: InputDecoration(
+                  labelText: "Workout Notes (e.g., Leg Day, Push Day)",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 15),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  _createWorkout(_notesController.text);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text(
+                  "Create Workout",
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -11,6 +11,18 @@ class ProgressAnalyticsService {
     return prefs.getString("token");
   }
 
+  // 🔹 Fetch exercise progress history for a user
+  Future<List<Map<String, dynamic>>?> fetchExerciseProgress(
+      String userId, String exerciseName) async {
+    final response =
+        await http.get(Uri.parse("$baseUrl/$userId/$exerciseName"));
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+    }
+    return null;
+  }
+
   // 🔹 Fetch Best Lift
   Future<Map<String, dynamic>?> fetchBestLift(String userId) async {
     final token = await _getToken();

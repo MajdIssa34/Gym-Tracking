@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:my_gym_app/screens/progress_screen.dart';
 import 'package:my_gym_app/screens/wokrout_screen.dart';
 import 'package:my_gym_app/services/progress_analytics_service.dart';
 import '../services/workout_service.dart';
@@ -37,14 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final userInfo = await _authService.getUserInfo();
 
     if (fetchedWorkouts.isNotEmpty) {
-      int lastWorkoutId = fetchedWorkouts.first['id'];
+      int lastWorkoutId = fetchedWorkouts.last['id'];
       _fetchWorkoutSummary(lastWorkoutId);
     }
 
     _fetchBestLift(); // Fetch best lift
 
     setState(() {
-      workouts = fetchedWorkouts.reversed.take(3).toList();
+      workouts = fetchedWorkouts.reversed.toList();
       userName = userInfo['name'] ?? "User";
     });
   }
@@ -70,8 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print("✅ Workouts received: $fetchedWorkouts");
 
     setState(() {
-      workouts =
-          fetchedWorkouts.reversed.take(3).toList(); // ✅ Limit to 3 most recent
+      workouts = fetchedWorkouts; // ✅ Store all workouts
       _loading = false;
     });
   }
@@ -234,6 +234,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: Text(
                   "See All Workouts →",
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent),
+                ),
+              ),
+            ),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const ProgressScreen()));
+                },
+                child: Text(
+                  "Progress →",
                   style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

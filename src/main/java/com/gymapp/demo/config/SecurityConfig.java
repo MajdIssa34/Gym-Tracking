@@ -82,7 +82,7 @@ public class SecurityConfig {
     public CorsConfiguration corsConfiguration() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:61172/")); // ✅ Allow all origins for testing (change in
+        config.setAllowedOrigins(List.of("http://localhost:50321/")); // ✅ Allow all origins for testing (change in
                                                                       // production)
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

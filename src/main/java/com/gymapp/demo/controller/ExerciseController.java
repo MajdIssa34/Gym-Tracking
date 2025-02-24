@@ -76,6 +76,9 @@ public class ExerciseController {
         /**
          * ✅ Get total sets, reps, and weight lifted in a workout.
          */
+        /**
+         * ✅ Get total sets, reps, and weight lifted in a workout.
+         */
         @GetMapping("/workout/{workoutId}/summary")
         public ResponseEntity<?> getWorkoutSummary(@PathVariable Long workoutId) {
                 List<Exercise> exercises = exerciseRepository.findByWorkoutId(workoutId);
@@ -85,7 +88,10 @@ public class ExerciseController {
                 }
 
                 int totalSets = exercises.stream().mapToInt(Exercise::getSets).sum();
-                int totalReps = exercises.stream().mapToInt(Exercise::getReps).sum();
+
+                // Corrected: Multiply reps by sets to get total reps correctly
+                int totalReps = exercises.stream().mapToInt(ex -> ex.getReps() * ex.getSets()).sum();
+
                 float totalWeightLifted = (float) exercises.stream()
                                 .mapToDouble(ex -> ex.getWeight() * ex.getReps() * ex.getSets())
                                 .sum();
