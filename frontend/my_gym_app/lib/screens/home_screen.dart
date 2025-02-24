@@ -225,36 +225,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // 🔹 See All Workouts Button
             Center(
-              child: TextButton(
+              child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (_) => const WorkoutsScreen()));
                 },
-                child: Text(
-                  "See All Workouts →",
-                  style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent),
+                icon: const Icon(Icons.bar_chart, color: Colors.white),
+                label: Text(
+                  "💪 View All Workouts",
+                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
             ),
+            SizedBox(height: 20),
             Center(
-              child: TextButton(
+              child: ElevatedButton.icon(
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (_) => const ProgressScreen()));
                 },
-                child: Text(
-                  "Progress →",
-                  style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent),
+                icon: const Icon(Icons.bar_chart, color: Colors.white),
+                label: Text(
+                  "📈 View Progress",
+                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 30),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
             ),
